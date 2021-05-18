@@ -35,6 +35,7 @@
 .menu__container .ant-menu-horizontal {
   border-bottom: none;
 }
+
 @media (min-width: 768px) {
   .menu__container {
     display: flex;

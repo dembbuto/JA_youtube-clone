@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Typography, Button, Form, Input } from 'antd';
+import { Typography, Button, Form, Input, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import Dropzone from 'react-dropzone';
 import Axios from 'axios';
+import { useSelector } from 'react-redux';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -20,7 +21,8 @@ const CategoryOptions = [
 	{ value: 4, label: 'Sports' },
 ];
 
-function UploadVideoPage() {
+function UploadVideoPage(props) {
+	const user = useSelector(state => state.user);
 	const [VideoTitle, setVideoTitle] = useState('');
 	const [Description, setDescription] = useState('');
 	const [Private, setPrivate] = useState(0);
@@ -28,9 +30,6 @@ function UploadVideoPage() {
 	const [FilePath, setFilePath] = useState('');
 	const [Duration, setDuration] = useState('');
 	const [ThumbnailPath, setThumbnailPath] = useState('');
-
-	console.log(Private);
-	console.log(Category);
 
 	const onTitleChange = event => {
 		setVideoTitle(event.currentTarget.value);
@@ -67,17 +66,41 @@ function UploadVideoPage() {
 				};
 
 				setFilePath(response.data.url);
-				console.log('FilePath', FilePath);
 
 				Axios.post('/api/video/thumbnail', variable).then(response => {
 					if (!response.data.success) {
 						alert('썸네일 생성에 실패했습니다.');
 					} else {
 						setDuration(response.data.fileDuration);
-						console.log('Duration', Duration);
 						setThumbnailPath(response.data.url);
 					}
 				});
+			}
+		});
+	};
+
+	const onSubmit = event => {
+		event.preventDefault();
+
+		const variables = {
+			writer: user.userData._id,
+			title: VideoTitle,
+			description: Description,
+			privacy: Private,
+			filePath: FilePath,
+			category: Category,
+			duration: Duration,
+			thumbnail: ThumbnailPath,
+		};
+
+		Axios.post('/api/video/uploadVideo', variables).then(response => {
+			if (!response.data.success) {
+				alert('비디오 업로드를 실패했습니다.');
+			} else {
+				message.success('성공적으로 업로드를 했습니다.');
+				setTimeout(() => {
+					props.history.push('/');
+				}, 1000);
 			}
 		});
 	};
@@ -88,7 +111,7 @@ function UploadVideoPage() {
 				<Title level={2}> Upload Video</Title>
 			</div>
 
-			<Form onSubmit>
+			<Form onSubmit={onSubmit}>
 				<div style={{ display: 'flex', justifyContent: 'space-between' }}>
 					<Dropzone onDrop={onDrop} multiple={false} maxSize={1000000000}>
 						{({ getRootProps, getInputProps }) => (
@@ -150,7 +173,7 @@ function UploadVideoPage() {
 				<br />
 				<br />
 
-				<Button type="primary" size="large" onClick>
+				<Button type="primary" size="large" onClick={onSubmit}>
 					Submit
 				</Button>
 			</Form>

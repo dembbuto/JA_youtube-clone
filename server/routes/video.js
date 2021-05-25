@@ -40,24 +40,6 @@ router.post('/uploadfiles', (req, res) => {
 	});
 });
 
-router.post('/uploadVideo', (req, res) => {
-	const video = new Video(req.body);
-	video.save((err, doc) => {
-		if (err) return res.json({ success: false, err });
-		res.status(200).json({ success: true });
-	});
-});
-
-router.get('/getVideo', (req, res) => {
-	// 비디오를 DB에서 가져와서 클라이언트에 보낸다.
-	Video.find()
-		.populate('writer')
-		.exec((err, videos) => {
-			if (err) return res.status(400).send(err);
-			res.status(200).json({ success: true, videos });
-		});
-});
-
 router.post('/thumbnail', (req, res) => {
 	let filePath = '';
 	let fileDuration = '';
@@ -94,6 +76,33 @@ router.post('/thumbnail', (req, res) => {
 			size: '320x240',
 			// %b input basename ( filename w/o extension )
 			filename: 'thumbnail-%b.png',
+		});
+});
+
+router.post('/uploadVideo', (req, res) => {
+	const video = new Video(req.body);
+	video.save((err, doc) => {
+		if (err) return res.json({ success: false, err });
+		res.status(200).json({ success: true });
+	});
+});
+
+router.get('/getVideo', (req, res) => {
+	// 비디오를 DB에서 가져와서 클라이언트에 보낸다.
+	Video.find()
+		.populate('writer')
+		.exec((err, videos) => {
+			if (err) return res.status(400).send(err);
+			return res.status(200).json({ success: true, videos });
+		});
+});
+
+router.post('/getVideoDetail', (req, res) => {
+	Video.findOne({ _id: req.body.videoId })
+		.populate('writer')
+		.exec((err, videoDetail) => {
+			if (err) return res.status(400).send(err);
+			return res.status(200).json({ success: true, videoDetail });
 		});
 });
 
